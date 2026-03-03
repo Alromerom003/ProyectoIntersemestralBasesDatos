@@ -11,11 +11,16 @@ from app.schemas import RentalCreate, RentalResponse
 def create_rental_serializable(conn: Connection, data: RentalCreate) -> RentalResponse:
     """
     Crea una renta usando una transacción SERIALIZABLE con reintentos.
-    La unicidad de renta activa por inventory_id se garantiza en la BD
-    mediante un índice único parcial sobre rental(return_date IS NULL).
     """
 
-    # Validar existencia de entidades base.
+    # Validación defensiva básica
+    if data.customer_id <= 0 or data.inventory_id <= 0 or data.staff_id <= 0:
+        raise api_error(
+            400,
+            "INVALID_INPUT",
+            "Los identificadores deben ser mayores que cero.",
+        )
+
     for table, field_name, field_value in [
         ("customer", "customer_id", data.customer_id),
         ("inventory", "inventory_id", data.inventory_id),
@@ -25,6 +30,7 @@ def create_rental_serializable(conn: Connection, data: RentalCreate) -> RentalRe
             text(f"SELECT 1 FROM {table} WHERE {field_name} = :id"),
             {"id": field_value},
         ).first()
+
         if not exists:
             raise api_error(
                 404,
@@ -47,16 +53,16 @@ def create_rental_serializable(conn: Connection, data: RentalCreate) -> RentalRe
                 "staff_id": data.staff_id,
             },
         ).one()
+
     except IntegrityError as exc:
-        # Si el índice único parcial salta, devolvemos 409.
-        # Código SQLSTATE 23505 = unique_violation.
         orig = getattr(exc, "orig", None)
         sqlstate = getattr(orig, "pgcode", None) or getattr(orig, "sqlstate", None)
+
         if sqlstate == "23505":
             raise api_error(
                 409,
                 "RENTAL_ALREADY_ACTIVE",
-                "Ya existe una renta activa para este inventory_id (return_date IS NULL).",
+                "Ya existe una renta activa para este inventory_id.",
             )
         raise
 
@@ -67,4 +73,3 @@ def create_rental_serializable(conn: Connection, data: RentalCreate) -> RentalRe
         customer_id=row.customer_id,
         staff_id=row.staff_id,
     )
-
