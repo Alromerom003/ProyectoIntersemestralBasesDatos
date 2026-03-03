@@ -9,8 +9,18 @@ def create_payment_read_committed(conn: Connection, data: PaymentCreate) -> Paym
     """
     Crea un pago validando:
     - existencia de customer y staff,
-    - opcionalmente existencia de rental y pertenencia al mismo customer.
+    - opcionalmente existencia de rental y pertenencia al mismo customer,
+    - amount > 0 (validación adicional a la de trigger).
     """
+
+    # Validación defensiva adicional (antes de llegar al trigger).
+    if data.amount <= 0:
+        raise api_error(
+            400,
+            "INVALID_AMOUNT",
+            "El monto del pago debe ser mayor que cero.",
+        )
+
     # Validar existencia de customer y staff.
     for table, field_name, field_value in [
         ("customer", "customer_id", data.customer_id),
@@ -28,6 +38,7 @@ def create_payment_read_committed(conn: Connection, data: PaymentCreate) -> Paym
             )
 
     rental_id = data.rental_id
+
     if rental_id is not None:
         rental_row = conn.execute(
             text(
@@ -39,15 +50,15 @@ def create_payment_read_committed(conn: Connection, data: PaymentCreate) -> Paym
             ),
             {"rental_id": rental_id},
         ).first()
+
         if not rental_row:
             raise api_error(
                 404,
                 "RENTAL_NOT_FOUND",
                 f"Renta con id {rental_id} no existe.",
             )
+
         if rental_row.customer_id != data.customer_id:
-            # Decisión: 400 Bad Request porque el cliente mandó una combinación inconsistente,
-            # aunque ambos recursos existan.
             raise api_error(
                 400,
                 "RENTAL_CUSTOMER_MISMATCH",
@@ -78,4 +89,3 @@ def create_payment_read_committed(conn: Connection, data: PaymentCreate) -> Paym
         amount=row.amount,
         payment_date=row.payment_date,
     )
-
