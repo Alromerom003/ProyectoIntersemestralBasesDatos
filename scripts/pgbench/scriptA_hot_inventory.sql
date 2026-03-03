@@ -10,7 +10,9 @@
 \set staff_id random(1, 2)
 
 -- Ajustar manualmente este inventory_id a uno existente en la base Pagila.
-\set inventory_id 1
+\set inv_low 1
+\set inv_high 50
+\set inventory_id random(:inv_low, :inv_high)
 
 BEGIN;
 SET LOCAL TRANSACTION ISOLATION LEVEL SERIALIZABLE;
