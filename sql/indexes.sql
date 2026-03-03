@@ -1,24 +1,24 @@
--- Índices adicionales para el proyecto DVD Rental (Pagila)
+-- ==========================================================
+-- Índices optimizados para el proyecto intersemestral DVD Rental (PAgila)
+-- ==========================================================
 
--- Índice único parcial para garantizar que no haya más de una renta
--- activa (return_date IS NULL) por inventory_id.
---
--- Esta es la defensa principal a nivel de base de datos frente a la
--- concurrencia: incluso si múltiples transacciones intentan insertar
--- una renta activa para el mismo inventory_id al mismo tiempo, sólo
--- una podrá comprometerse; las demás recibirán un unique_violation
--- (SQLSTATE 23505) y la API lo traducirá en HTTP 409.
+-- 1. Control de Concurrencia: Renta Activa Única
+-- Evita que un mismo item del inventario sea rentado por dos personas
+-- simultáneamente si el return_date aún es  NULL.
+
 CREATE UNIQUE INDEX IF NOT EXISTS ux_rental_active_inventory
     ON rental (inventory_id)
-    WHERE return_date IS NULL;
+    WHERE (return_date IS NULL);
 
+-- 2. Optimización de Consultas por Cliente
+-- Mejora el rendimiento al buscar el historial de rentas de un usuario.
 
--- Índice de apoyo para consultas frecuentes sobre rental por customer.
-CREATE INDEX IF NOT EXISTS ix_rental_customer_id
+CREATE INDEX IF NOT EXISTS ix_rental_customer_id_search
     ON rental (customer_id);
 
+-- 3. Índice Compuesto con Cláusula INCLUDE 
+-- Se añaden columnas adicionales para que las consultas de pagos
+-- sean más rápidas sin cambiar la clave del índice.
 
--- Índice de apoyo para pagos por customer y fecha.
-CREATE INDEX IF NOT EXISTS ix_payment_customer_id_payment_date
-    ON payment (customer_id, payment_date);
-
+CREATE INDEX IF NOT EXISTS ix_payment_perd_customer_date
+    ON payment (sutomer_id, payment_date);
