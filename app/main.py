@@ -23,6 +23,17 @@ app = FastAPI(
 add_exception_handlers(app)
 
 
+@app.get("/")
+def root():
+    """Raíz de la API. Documentación interactiva en /docs."""
+    return {
+        "message": "DVD Rental API - Concurrencia Pagila",
+        "version": "1.0.0",
+        "docs": "/docs",
+        "endpoints": ["POST /rentals", "POST /returns/{rental_id}", "POST /payments"],
+    }
+
+
 def get_db_connection() -> Connection:
     with get_connection() as conn:
         yield conn

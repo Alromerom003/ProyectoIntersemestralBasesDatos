@@ -21,4 +21,4 @@ CREATE INDEX IF NOT EXISTS ix_rental_customer_id_search
 -- sean más rápidas sin cambiar la clave del índice.
 
 CREATE INDEX IF NOT EXISTS ix_payment_perd_customer_date
-    ON payment (sutomer_id, payment_date);
+    ON payment (customer_id, payment_date);

@@ -110,6 +110,11 @@ Debería ver: `Uvicorn running on http://127.0.0.1:8000`
 
 Si todos los pasos responden correctamente, la aplicación está funcionando.
 
+**Si `POST /payments` devuelve 500** con el error «no se encontró una partición de payment»: la tabla `payment` está particionada por fecha y faltan particiones para años recientes. Ejecuta:
+```powershell
+psql -U postgres -d pagila -f sql/partitions.sql
+```
+
 ---
 
 ## 1) Prerrequisitos (detalle)

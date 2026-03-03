@@ -5,9 +5,17 @@ from pydantic import BaseModel, Field, ConfigDict
 
 
 class RentalCreate(BaseModel):
-    customer_id: int = Field(gt=0)
-    inventory_id: int = Field(gt=0)
-    staff_id: int = Field(gt=0)
+    customer_id: int = Field(gt=0, examples=[1])
+    inventory_id: int = Field(gt=0, examples=[1])
+    staff_id: int = Field(gt=0, examples=[1])
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "examples": [
+                {"customer_id": 1, "inventory_id": 1, "staff_id": 1},
+            ]
+        }
+    )
 
 
 class RentalResponse(BaseModel):
@@ -27,10 +35,19 @@ class ReturnResponse(BaseModel):
 
 
 class PaymentCreate(BaseModel):
-    customer_id: int = Field(gt=0)
-    staff_id: int = Field(gt=0)
-    amount: float = Field(gt=0, description="Monto del pago, debe ser > 0.")
-    rental_id: Optional[int] = Field(default=None, gt=0)
+    customer_id: int = Field(gt=0, examples=[1])
+    staff_id: int = Field(gt=0, examples=[1])
+    amount: float = Field(gt=0, description="Monto del pago, debe ser > 0.", examples=[5.99])
+    rental_id: Optional[int] = Field(default=None, gt=0, description="Opcional. Si se indica, debe pertenecer al customer_id.")
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "examples": [
+                {"customer_id": 1, "staff_id": 1, "amount": 5.99},
+                {"customer_id": 1, "staff_id": 1, "amount": 5.99, "rental_id": 1},
+            ]
+        }
+    )
 
 
 class PaymentResponse(BaseModel):
