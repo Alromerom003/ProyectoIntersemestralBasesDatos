@@ -1,23 +1,51 @@
--- ==========================================================
--- Esquema de optimización y performance DVD Rental
--- ==========================================================
+-- ======================================
+-- Esquema de auditoría y performance
+-- ======================================
 
--- 1. Regla de negocio: Integridad en renta de inventario.
--- Garantiza que un inventory_id no tenga duplicidad de rentas activas.
--- Implementación mediante índice parcial único.
+-- 1. Tabla de Auditoría
+-- Registro de movimientos para rental y payment.
+CREATE TABLE IF NOT EXISTS public.audit_log (
+    id SERIAL PRIMARY KEY,
+    tabla_afectada TEXT,
+    operacion TEXT,
+    valor_anterior JSONB,
+    valor_nuevo JSONB,
+    usuario_db TEXT DEFAULT CURRENT_USER,
+    fecha_registro TIMESTAMP DEFAULT NOW()
+);
+
+-- 2. Función para disparar el registro
+CREATE OR REPLACE FUNCTION public.fn_registrar_auditoria()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF (TG_OP = 'UPDATE') THEN
+        INSERT INTO audit_log(tabla_afectada, operacion, valor_anterior, valor_nuevo)
+        VALUES (TG_RELNAME, TG_OP, to_jsonb(OLD), to_jsonb(NEW));
+    ELSIF (TG_OP = 'INSERT') THEN
+        INSERT INTO audit_log(tabla_afectada, operacion, valor_nuevo)
+        VALUES (TG_RELNAME, TG_OP, to_jsonb(NEW));
+    ELSIF (TG_OP = 'DELETE') THEN
+        INSERT INTO audit_log(tabla_afectada, operacion, valor_anterior)
+        VALUES (TG_RELNAME, TG_OP, to_jsonb(OLD));
+    END IF;
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+-- 3. Triggers de aplicación
+CREATE TRIGGER trg_audit_rental AFTER INSERT OR UPDATE OR DELETE ON rental FOR EACH ROW EXECUTE FUNCTION fn_registrar_auditoria();
+CREATE TRIGGER trg_audit_payment AFTER INSERT OR UPDATE OR DELETE ON payment FOR EACH ROW EXECUTE FUNCTION fn_registrar_auditoria();
+
+-- ==============================
+-- Índices de optimización 
+-- ==============================
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_active_rental_prevention
-    ON rental (inventory_id)
-    WHERE return_date IS NULL;
+    ON rental (inventory_id) WHERE return_date IS NULL;
 
--- 2. Performance: Optimización de búsqueda de clientes.
--- Indexación de customer_id para acelerar joins y filtrados en la tabla rental.
-
+-- Fix: Corregido sutomer_id a customer_id
 CREATE INDEX IF NOT EXISTS idx_rental_customer_lookup
-    ON rental (sutomer_id);
-
--- 3. Performance: Historial de pagos
--- Índice compuesto optimizado para reportes de facturación por cliente y fecha.
+    ON rental (customer_id);
 
 CREATE INDEX IF NOT EXISTS idx_payment_customer_date_composite
     ON payment (customer_id, payment_date);
