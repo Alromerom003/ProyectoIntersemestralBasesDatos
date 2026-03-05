@@ -1,7 +1,7 @@
 import os
 import time
 from contextlib import contextmanager
-from typing import Callable, Generator, TypeVar, Any
+from typing import Callable, Generator, TypeVar
 
 from dotenv import load_dotenv
 from sqlalchemy import create_engine, text
@@ -69,6 +69,11 @@ def retry_transaction(
     Ejecuta una transacción con reintentos ante deadlocks y serialization failures.
     Backoff exponencial: 0.05, 0.1, 0.2, 0.4, 0.8 ...
     """
+    if max_retries < 0:
+        raise ValueError("max_retries no puede ser negativo")
+    if base_backoff < 0:
+        raise ValueError("base_backoff no puede ser negativo")
+    
     attempt = 0
     while True:
         try:
@@ -111,4 +116,3 @@ def run_read_committed_transaction(
         # Normalmente no esperamos conflictos de serialización aquí, pero reutilizamos la misma
         # función de reintentos por simplicidad y para cubrir casos de deadlock.
     )
-
