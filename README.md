@@ -15,7 +15,7 @@ El presente proyecto intersemestral consiste en el desarrollo y despliegue de un
 2. Arquitectura y Tecnologías
 Para garantizar la escalabilidad y el mantenimiento del sistema, se seleccionaron las siguientes tecnologías:
 
-Backend: Python 3.11+ con FastAPI.
+- Backend: Python 3.11+ con FastAPI.
 
 - ORM / Acceso a Datos: SQLAlchemy 2.0 y Psycopg3 para una gestión eficiente de conexiones.
 
