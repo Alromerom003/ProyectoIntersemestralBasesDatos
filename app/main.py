@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, Path
 from sqlalchemy.engine import Connection
 
 from app.db import get_connection, run_serializable_transaction, run_read_committed_transaction
@@ -63,7 +63,7 @@ def create_rental_endpoint(
 
 @app.post("/returns/{rental_id}", response_model=ReturnResponse)
 def return_rental_endpoint(
-    rental_id: int,
+    rental_id: int = Path(gt=0, description="ID de la renta, debe ser mayor que 0."),
     conn: Connection = Depends(get_db_connection),
 ) -> ReturnResponse:
     """
