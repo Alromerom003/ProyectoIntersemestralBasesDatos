@@ -17,11 +17,11 @@ Para garantizar la escalabilidad y el mantenimiento del sistema, se seleccionaro
 
 Backend: Python 3.11+ con FastAPI.
 
-ORM / Acceso a Datos: SQLAlchemy 2.0 y Psycopg3 para una gestión eficiente de conexiones.
+- ORM / Acceso a Datos: SQLAlchemy 2.0 y Psycopg3 para una gestión eficiente de conexiones.
 
-Base de Datos: PostgreSQL 18, aprovechando sus capacidades nativas para el manejo de bloqueos y triggers.
+- Base de Datos: PostgreSQL 18, aprovechando sus capacidades nativas para el manejo de bloqueos y triggers.
 
-Entorno: Gestión de variables de entorno mediante .env para asegurar la portabilidad y seguridad de las credenciales.
+- Entorno: Gestión de variables de entorno mediante .env para asegurar la portabilidad y seguridad de las credenciales.
 
 3. Implementación de Concurrencia y Aislamiento
 El núcleo del proyecto se centra en la integridad de los datos durante procesos concurrentes. Se aplicaron las siguientes estrategias:
