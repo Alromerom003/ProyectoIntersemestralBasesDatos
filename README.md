@@ -1,9 +1,10 @@
 Documentación Técnica: API de Gestión de Alquiler de DVDs (Pagila)
+
 Estudiantes: 
-Mariajosé Rito Michelena
-Sebastián Fernández Oro Ricaud
-Diego Valdovinos Rodríguez
-Alberto Romero
+- Mariajosé Rito Michelena
+- Sebastián Fernández Oro Ricaud
+- Diego Valdovinos Rodríguez
+- Alberto Romero
 
 Materia: Bases de Datos Avanzadas
 
