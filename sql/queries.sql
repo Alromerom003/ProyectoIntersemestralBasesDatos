@@ -44,7 +44,8 @@ FROM (
             ORDER BY total_rentals DESC
         ) AS rank_in_store
     FROM film_stats
-) rank_in_store <= 3
+) AS sub 
+WHERE rank_in_store <= 3
 ORDER BY store_id, rank_in_store;
 
 -- Query 3. Inventory: Disponibilidad real en tienda
