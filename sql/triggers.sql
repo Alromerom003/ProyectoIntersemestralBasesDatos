@@ -58,3 +58,19 @@ CREATE INDEX IF NOT EXISTS idx_rental_customer_lookup
 -- Índice compuesto para el endpoint de pagos
 CREATE INDEX IF NOT EXISTS idx_payment_customer_date_composite
     ON payment (customer_id, payment_date);
+
+-- Impide el registro de pagos con montos menores o iguales a cero.
+
+CREATE OR REPLACE FUNCTION check_payment_amount()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.amount <= 0 THEN
+        RAISE EXCEPTION 'ERROR_REGLA_NEGOCIO: El monto del pago (%) debe ser mayor a cero.', NEW.amount;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_check_payment_amount
+BEFORE INSERT OR UPDATE ON payment
+FOR EACH ROW EXECUTE FUNCTION check_payment_amount();
