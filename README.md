@@ -46,22 +46,23 @@ Validación de Pagos: Restricción a nivel de base de datos para impedir registr
 5.1 Configuración de Base de Datos
 Crear la base de datos: createdb -U postgres pagila
 
-Ejecutar los scripts en el siguiente orden jerárquico:
+  Ejecutar los scripts en el siguiente orden jerárquico:
 
-pagila-schema.sql (Estructura base)
+  - pagila-schema.sql (Estructura base)
 
-pagila-data.sql (Carga de registros)
+  - pagila-data.sql (Carga de registros)
 
-sql/indexes.sql (Optimización y restricciones de unicidad)
+  - sql/indexes.sql (Optimización y restricciones de unicidad)
 
-sql/triggers.sql (Lógica de auditoría y negocio)
+  - sql/triggers.sql (Lógica de auditoría y negocio)
 
 5.2 Entorno de Ejecución
 Bash
 # Instalación de dependencias y activación de entorno
-python -m venv .venv
-.\.venv\Scripts\activate
-pip install -r requirements.txt
+- python -m venv .venv
+- .\.venv\Scripts\activate
+- pip install -r requirements.txt
+  
 5.3 Ejecución del Servidor
 Para iniciar la API en modo de desarrollo:
 uvicorn app.main:app --reload
