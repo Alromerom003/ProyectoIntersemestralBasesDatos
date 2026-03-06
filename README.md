@@ -66,7 +66,8 @@ Bash
   
 5.3 Ejecución del Servidor
 Para iniciar la API en modo de desarrollo:
-uvicorn app.main:app --reload
+
+- uvicorn app.main:app --reload
 
 6. Pruebas de Carga y Validación
 Se incluyeron scripts de pgbench para estresar el sistema. Estas pruebas confirman que, bajo una carga de 20 clientes concurrentes, el sistema gestiona correctamente las excepciones de base de datos sin comprometer la consistencia del inventario de DVDs.
