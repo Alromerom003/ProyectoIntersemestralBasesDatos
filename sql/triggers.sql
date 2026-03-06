@@ -3,7 +3,6 @@
 -- ======================================
 
 -- 1. Tabla de Auditoría
--- Registro de movimientos para rental y payment.
 CREATE TABLE IF NOT EXISTS public.audit_log (
     id SERIAL PRIMARY KEY,
     tabla_afectada TEXT,
@@ -21,31 +20,41 @@ BEGIN
     IF (TG_OP = 'UPDATE') THEN
         INSERT INTO audit_log(tabla_afectada, operacion, valor_anterior, valor_nuevo)
         VALUES (TG_RELNAME, TG_OP, to_jsonb(OLD), to_jsonb(NEW));
+        RETURN NEW;
     ELSIF (TG_OP = 'INSERT') THEN
         INSERT INTO audit_log(tabla_afectada, operacion, valor_nuevo)
         VALUES (TG_RELNAME, TG_OP, to_jsonb(NEW));
+        RETURN NEW;
     ELSIF (TG_OP = 'DELETE') THEN
         INSERT INTO audit_log(tabla_afectada, operacion, valor_anterior)
         VALUES (TG_RELNAME, TG_OP, to_jsonb(OLD));
+        RETURN OLD;
     END IF;
     RETURN NULL;
 END;
 $$ LANGUAGE plpgsql;
 
 -- 3. Triggers de aplicación
-CREATE TRIGGER trg_audit_rental AFTER INSERT OR UPDATE OR DELETE ON rental FOR EACH ROW EXECUTE FUNCTION fn_registrar_auditoria();
-CREATE TRIGGER trg_audit_payment AFTER INSERT OR UPDATE OR DELETE ON payment FOR EACH ROW EXECUTE FUNCTION fn_registrar_auditoria();
+-- Registro de INSERT/UPDATE/DELETE sobre rental y payment
+CREATE TRIGGER trg_audit_rental 
+AFTER INSERT OR UPDATE OR DELETE ON rental 
+FOR EACH ROW EXECUTE FUNCTION fn_registrar_auditoria();
+
+CREATE TRIGGER trg_audit_payment 
+AFTER INSERT OR UPDATE OR DELETE ON payment 
+FOR EACH ROW EXECUTE FUNCTION fn_registrar_auditoria();
 
 -- ==============================
 -- Índices de optimización 
 -- ==============================
 
-CREATE UNIQUE INDEX IF NOT EXISTS idx_active_rental_prevention
+CREATE UNIQUE INDEX IF NOT EXISTS ux_rental_active_inventory
     ON rental (inventory_id) WHERE return_date IS NULL;
 
--- Fix: Corregido sutomer_id a customer_id
+-- Búsqueda eficiente por cliente
 CREATE INDEX IF NOT EXISTS idx_rental_customer_lookup
     ON rental (customer_id);
 
+-- Índice compuesto para el endpoint de pagos
 CREATE INDEX IF NOT EXISTS idx_payment_customer_date_composite
     ON payment (customer_id, payment_date);
