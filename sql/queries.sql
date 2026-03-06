@@ -83,16 +83,18 @@ WITH rental_deadlines AS (
     JOIN category c ON c.category_id = fc.category_id
 ),
 delay_calc AS (
-    SELECT category,
-        EXTRACT(DAY FROM (COALESCE(retun_date, NOW()) - limit_date)) AS days_overdue
+    SELECT 
+        category,
+        EXTRACT(DAY FROM (COALESCE(return_date, NOW()) - limit_date)) AS days_overdue
     FROM rental_deadlines
-    WHERE return_date > limit_date OR return_date IS NULL
+    WHERE return_date > limit_date OR (return_date IS NULL AND NOW() > limit_date)
 )
 SELECT
     category,
-COUNT (*) AS total_late_cases,
-ROUND(AVG(GREATEST(days_overdue, 0)):: NUMERIC, 2) AS avg_delay_days
+    COUNT(*) AS total_late_cases,
+    ROUND(AVG(days_overdue)::NUMERIC, 2) AS avg_delay_days
 FROM delay_calc
+WHERE days_overdue > 0
 GROUP BY category
 ORDER BY avg_delay_days DESC;
 
@@ -104,23 +106,25 @@ WITH daily_payment_check AS (
     SELECT
         customer_id,
         amount,
-        payment_date:: DATE AS p_date,
-        COUNT(*) OVER(PARTITION BY customer_id, amount, payment_date:: DATE) as occurrence_count
+        payment_date::DATE AS p_date,
+        COUNT(*) OVER(PARTITION BY customer_id, amount, payment_date::DATE) as occurrence_count
     FROM payment
 )
-SELECT
+SELECT DISTINCT 
     p.payment_id,
     p.customer_id,
-    p.aoumt,
+    p.amount, 
     p.payment_date,
     CASE
-        WHEN p.amount > 50 THEN 'CRITICAL_AMOUNT'
+        WHEN p.amount > 10 THEN 'HIGH_AMOUNT'
         WHEN d.occurrence_count > 1 THEN 'POTENTIAL_DUPLICATE'
         ELSE 'VERIFIED'
     END AS status_flag
 FROM payment p
-JOIN daily_payment_check d ON p.customer_id = d.customer_id AND p.payment_date = p.payment_date
-WHERE p.amount > 50 OR d.occurrence_count >1
+JOIN daily_payment_check d ON p.customer_id = d.customer_id 
+    AND p.amount = d.amount 
+    AND p.payment_date::DATE = d.p_date
+WHERE p.amount > 10 OR d.occurrence_count > 1
 ORDER BY p.payment_date DESC;
     
 -- Query 6. Risk Analysis: Clientes con Morosidad Crítica
@@ -144,13 +148,13 @@ late_list AS (
     WHERE return_date > expected_return
 )
 SELECT
-    c.customer_id
-    c.first_name || '' || c.last_name AS full_name,
+    c.customer_id, 
+    c.first_name || ' ' || c.last_name AS full_name, 
     COUNT(ll.rental_id) AS total_late_returns
 FROM customer c
 INNER JOIN late_list ll ON ll.customer_id = c.customer_id
 GROUP BY c.customer_id, full_name
-HAVIMG COUNT(ll.rental_id) >= 3
+HAVING COUNT(ll.rental_id) >= 3 
 ORDER BY total_late_returns DESC;
     
 
