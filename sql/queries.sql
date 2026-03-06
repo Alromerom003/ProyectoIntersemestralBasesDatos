@@ -51,12 +51,12 @@ ORDER BY store_id, rank_in_store;
 -- Query 3. Inventory: Disponibilidad real en tienda
 -- Anti-join optimizado para filtrar rentas que no han sido devueltas.
 
-WITH current_rentals AS 
+WITH current_rentals AS (
     SELECT inventory_id
     FROM rental
     WHERE return_date IS NULL
 )
-SELECT 
+SELECT
     s.store_id,
     f.title,
     COUNT(i.inventory_id) AS stock_available
